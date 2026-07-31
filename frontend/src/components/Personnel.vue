@@ -95,9 +95,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { userService } from '../services/userService';
 
-// App.vue'ye ana panele (dashboard) dönme komutu gönderir
 defineEmits(['go-home']);
 
 const personnelList = ref([]);
@@ -105,7 +104,6 @@ const isEditing = ref(false);
 const currentEditId = ref(null);
 const errorMessage = ref('');
 
-// Form Verileri (Şifre silindi, username eklendi)
 const form = ref({
   fullName: '',
   username: '',
@@ -114,25 +112,14 @@ const form = ref({
   role: ''
 });
 
-// YENİ: Token ekleme fonksiyonu (Güvenlik duvarını geçmek için)
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: { Authorization: `Bearer ${token}` }
-  };
-};
-
-// Personelleri Backend'den Çek
 const fetchPersonnel = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/users', getAuthHeaders());
-    personnelList.value = response.data;
+    personnelList.value = await userService.getUsers();
   } catch (error) {
     console.error('Personel listesi alınamadı:', error);
   }
 };
 
-// Form Gönderme (Kaydet veya Güncelle)
 const handleSubmit = async () => {
   errorMessage.value = '';
 
@@ -143,17 +130,17 @@ const handleSubmit = async () => {
 
   try {
     if (isEditing.value) {
-      await axios.put(`http://localhost:3000/api/users/${currentEditId.value}`, form.value, getAuthHeaders());
+      await userService.updateUser(currentEditId.value, form.value);
     } else {
-      await axios.post('http://localhost:3000/api/users/register', form.value, getAuthHeaders());
-      alert("Personel başarıyla kaydedildi! Geçici şifre mail adresine gönderildi."); // Başarı mesajı eklendi
+      await userService.registerUser(form.value);
+      alert("Personel başarıyla kaydedildi! Geçici şifre mail adresine gönderildi.");
     }
     
     resetForm();
     fetchPersonnel();
   } catch (error) {
     if (error.response && error.response.status === 409) {
-      errorMessage.value = error.response.data.message; // Çakışma hatalarını (TC veya Username) ekrana basar
+      errorMessage.value = error.response.data.message;
     } else {
       errorMessage.value = "Bir hata oluştu, sunucuya ulaşılamıyor.";
     }
@@ -161,7 +148,6 @@ const handleSubmit = async () => {
   }
 };
 
-// Düzenleme Moduna Geç
 const editPerson = (person) => {
   isEditing.value = true;
   currentEditId.value = person.id;
@@ -174,12 +160,10 @@ const editPerson = (person) => {
   };
 };
 
-// Düzenlemeyi İptal Et
 const cancelEdit = () => {
   resetForm();
 };
 
-// Formu Temizle
 const resetForm = () => {
   isEditing.value = false;
   currentEditId.value = null;
@@ -187,11 +171,10 @@ const resetForm = () => {
   form.value = { fullName: '', username: '', tcNo: '', email: '', role: '' };
 };
 
-// Personel Silme
 const deletePerson = async (id) => {
   if (confirm('Bu personeli sistemden silmek istediğinize emin misiniz?')) {
     try {
-      await axios.delete(`http://localhost:3000/api/users/${id}`, getAuthHeaders());
+      await userService.deleteUser(id);
       fetchPersonnel();
     } catch (error) {
       console.error('Silme işlemi başarısız:', error);

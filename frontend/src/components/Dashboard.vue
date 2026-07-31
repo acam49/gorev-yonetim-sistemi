@@ -244,7 +244,11 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
+import { taskService } from '../services/taskService';
+import { userService } from '../services/userService';
+import { authService } from '../services/authService';
+import { validatePassword } from '../utils/validators';
+import { formatDate } from '../utils/formatters';
 
 const props = defineProps({
   currentUser: { type: Object, required: true }
@@ -253,7 +257,6 @@ defineEmits(['navigate', 'logout']);
 
 const tasksMenuOpen = ref(false);
 
-// Şifre değiştirme modal
 const showPasswordModal = ref(false);
 const pwForm = ref({ currentPassword: '', newPassword: '', confirmPassword: '' });
 const pwError = ref('');
@@ -270,24 +273,18 @@ const handleChangePassword = async () => {
   pwError.value = '';
   pwSuccess.value = '';
 
-  if (!pwForm.value.currentPassword) {
-    pwError.value = 'Mevcut şifrenizi girin.'; return;
-  }
-  if (pwForm.value.newPassword.length < 6) {
-    pwError.value = 'Yeni şifre en az 6 karakter olmalıdır.'; return;
-  }
-  if (!/[A-Z]/.test(pwForm.value.newPassword)) {
-    pwError.value = 'Yeni şifre en az 1 büyük harf içermelidir.'; return;
-  }
-  if (!/[0-9]/.test(pwForm.value.newPassword)) {
-    pwError.value = 'Yeni şifre en az 1 rakam içermelidir.'; return;
+  const ruleError = validatePassword(pwForm.value.newPassword);
+  if (ruleError) {
+    pwError.value = ruleError;
+    return;
   }
   if (pwForm.value.newPassword !== pwForm.value.confirmPassword) {
-    pwError.value = 'Yeni şifreler birbiriyle uyuşmuyor.'; return;
+    pwError.value = 'Yeni şifreler birbiriyle uyuşmuyor.';
+    return;
   }
 
   try {
-    await axios.put('http://localhost:3000/api/users/change-password', {
+    await authService.changePassword({
       currentPassword: pwForm.value.currentPassword,
       newPassword: pwForm.value.newPassword
     });
@@ -297,6 +294,7 @@ const handleChangePassword = async () => {
     pwError.value = error.response?.data?.message || 'Bir hata oluştu.';
   }
 };
+
 const adminMenuOpen = ref(false);
 const tasks = ref([]);         
 const allTasks = ref([]);      
@@ -310,24 +308,11 @@ const hasAdminAccess = computed(() => {
   return role === 'admin' || role === 'müdür' || role === 'mudur';
 });
 
-const formatDate = (value) => {
-  if (!value) return '-';
-  return new Date(value).toLocaleDateString('tr-TR');
-};
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: { Authorization: `Bearer ${token}` }
-  };
-};
-
 const fetchAssignedTasks = async () => {
   loading.value = true;
   error.value = false;
   try {
-    const response = await axios.get(`http://localhost:3000/api/tasks/user/${props.currentUser.id}`, getAuthHeaders());
-    tasks.value = response.data;
+    tasks.value = await taskService.getUserTasks(props.currentUser.id);
   } catch (err) {
     console.error('Görevler alınamadı:', err);
     error.value = true;
@@ -340,12 +325,12 @@ const fetchManagerData = async () => {
   loading.value = true;
   error.value = false;
   try {
-    const [tasksRes, usersRes] = await Promise.all([
-      axios.get('http://localhost:3000/api/tasks', getAuthHeaders()),
-      axios.get('http://localhost:3000/api/users', getAuthHeaders())
+    const [tasksData, usersData] = await Promise.all([
+      taskService.getTasks(),
+      userService.getUsers()
     ]);
-    allTasks.value = tasksRes.data;
-    allUsers.value = usersRes.data;
+    allTasks.value = tasksData;
+    allUsers.value = usersData;
   } catch (err) {
     console.error('Yönetim panosu verileri alınamadı:', err);
     error.value = true;

@@ -54,24 +54,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { logService } from '../services/logService';
 
 defineEmits(['go-home']);
 
 const logs = ref([]);
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: { Authorization: `Bearer ${token}` }
-  };
-};
-
-// Backend'den logları çeken fonksiyon
 const fetchLogs = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/logs', getAuthHeaders());
-    logs.value = response.data;
+    logs.value = await logService.getLogs();
   } catch (error) {
     console.error("Loglar alınamadı:", error);
   }
@@ -81,11 +72,10 @@ onMounted(() => {
   fetchLogs();
 });
 
-// Tek bir log kaydını sil
 const deleteLog = async (id) => {
   if (confirm('Bu log kaydını kalıcı olarak silmek istediğinize emin misiniz?')) {
     try {
-      await axios.delete(`http://localhost:3000/api/logs/${id}`, getAuthHeaders());
+      await logService.deleteLog(id);
       fetchLogs();
     } catch (error) {
       console.error('Log silinemedi:', error);

@@ -51,9 +51,9 @@
           <!-- Görev türü artık listeden seçiliyor -->
           <div>
             <label style="font-size:11px; color:rgba(255,255,255,0.6); display:block; margin-bottom:4px;">Görev Türü:</label>
-            <select v-model="form.title" class="status-dropdown" style="width:100%;" required>
+            <select v-model="form.taskTypeId" @change="onTaskTypeChange" class="status-dropdown" style="width:100%;" required>
               <option disabled value="">Görev türü seçin</option>
-              <option v-for="tt in taskTypes" :key="tt.id" :value="tt.name">{{ tt.name }}</option>
+              <option v-for="tt in taskTypes" :key="tt.id" :value="tt.id">{{ tt.name }}</option>
             </select>
           </div>
 
@@ -309,113 +309,62 @@
               <td v-if="hasAdminAccess">
 
                 <button @click="deleteTask(t.id)" class="btn-delete">Sil</button>
-
               </td>
-
             </tr>
-
           </tbody>
-
         </table>
-
       </div>
 
-
-
     </div>
-
   </div>
-
 </template>
 
-
-
 <script setup>
-
 import { ref, computed, onMounted } from 'vue';
-
-import axios from 'axios';
-
-
+import { taskService } from '../services/taskService';
+import { taskTypeService } from '../services/taskTypeService';
+import { userService } from '../services/userService';
+import { getTodayString } from '../utils/formatters';
 
 const props = defineProps({
-
   currentUser: { type: Object, required: true }
-
 });
-
 defineEmits(['go-home', 'logout']);
 
-
-
 const hasAdminAccess = computed(() => {
-
   if (!props.currentUser || !props.currentUser.role) return false;
-
   const role = props.currentUser.role.trim().toLowerCase();
-
   return role === 'admin' || role === 'müdür' || role === 'mudur';
-
 });
 
-
-
 const canRestoreTask = (task) => {
-
   if (hasAdminAccess.value) return true;
-
   return task.assignedToId === props.currentUser.id;
-
-};
-
-
-
-// BUGÜNÜN TARİHİNİ HESAPLAMA (HTML min formatı için YYYY-MM-DD)
-
-const getTodayString = () => {
-
-  const today = new Date();
-
-  const yyyy = today.getFullYear();
-
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-
-  const dd = String(today.getDate()).padStart(2, '0');
-
-  return `${yyyy}-${mm}-${dd}`;
-
 };
 
 const todayDate = getTodayString(); 
 
-
-
 const form = ref({
-
   title: '',
-
   description: '',
-
   plannedDate: '',
-
   deadline: '',
-
-  assignedToId: ''  // Boş = Genel görev (herkese açık)
-
+  assignedToId: '',
+  taskTypeId: ''
 });
 
-
+const onTaskTypeChange = () => {
+  const selectedType = taskTypes.value.find(tt => tt.id === form.value.taskTypeId);
+  if (selectedType) {
+    form.value.title = selectedType.name;
+  }
+};
 
 const taskTypes = ref([]);
 const users = ref([]);
-
 const tasks = ref([]);
-
 const editingStatusId = ref(null);
-
 const tempStatus = ref('');
-
-
 
 const getUserName = (userId) => {
   if (!userId) return 'Henüz Atanmadı';
@@ -424,17 +373,6 @@ const getUserName = (userId) => {
   }
   const user = users.value.find(u => String(u.id) === String(userId));
   return user ? (user.fullName || user.username) : 'Henüz Atanmadı';
-};
-
-
-
-
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: { Authorization: `Bearer ${token}` }
-  };
 };
 
 const getAssignedName = (task) => {
@@ -446,15 +384,13 @@ const getAssignedName = (task) => {
 
 const fetchTaskTypes = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/api/task-types', getAuthHeaders());
-    taskTypes.value = res.data;
+    taskTypes.value = await taskTypeService.getTypes();
   } catch (e) { console.error('Görev türleri alınamadı:', e); }
 };
 
 const fetchUsers = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/users', getAuthHeaders());
-    users.value = response.data;
+    users.value = await userService.getUsers();
   } catch (error) {
     console.error('Kullanıcılar alınamadı (Yetkiniz olmayabilir):', error);
   }
@@ -465,24 +401,9 @@ const archivedTasks = computed(() => tasks.value.filter(t => t.status === 'Tamam
 
 const fetchTasks = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/tasks', getAuthHeaders());
-    tasks.value = response.data;
+    tasks.value = await taskService.getTasks();
   } catch (error) {
     console.error("Hata:", error);
-  }
-};
-
-const createLog = async (action, details) => {
-  try {
-    await axios.post('http://localhost:3000/api/logs', {
-      userId: props.currentUser.id, 
-      actorName: props.currentUser.fullName || props.currentUser.username,
-      actorRole: props.currentUser.role,
-      action: action,
-      details: details
-    }, getAuthHeaders());
-  } catch (error) {
-    console.error("Log kaydedilemedi:", error);
   }
 };
 
@@ -498,15 +419,12 @@ const addTask = async () => {
       description: form.value.description,
       plannedDate: form.value.plannedDate,
       deadline: form.value.deadline,
-      assignedToId: form.value.assignedToId ? parseInt(form.value.assignedToId) : null
+      assignedToId: form.value.assignedToId ? parseInt(form.value.assignedToId) : null,
+      taskTypeId: form.value.taskTypeId ? parseInt(form.value.taskTypeId) : null
     };
 
-    await axios.post('http://localhost:3000/api/tasks', payload, getAuthHeaders());
-    
-    const assignedUser = payload.assignedToId ? getUserName(payload.assignedToId) : 'Genel (Herkese Açık)';
-    await createLog('Yeni Görev Atandı', `"${form.value.title}" başlıklı görev, ${assignedUser} atanacak şekilde oluşturuldu.`);
-    
-    form.value = { title: '', description: '', plannedDate: '', deadline: '', assignedToId: '' };
+    await taskService.createTask(payload);
+    form.value = { title: '', description: '', plannedDate: '', deadline: '', assignedToId: '', taskTypeId: '' };
     fetchTasks();
   } catch (error) {
     console.error("Hata:", error);
@@ -516,13 +434,7 @@ const addTask = async () => {
 
 const claimTask = async (task) => {
   try {
-    await axios.put(`http://localhost:3000/api/tasks/${task.id}`, {
-      assignedToId: props.currentUser.id,
-      status: 'Devam Ediyor'
-    }, getAuthHeaders());
-    
-    const myName = props.currentUser.fullName || props.currentUser.username;
-    await createLog('Görev Üstlenildi', `"${task.title}" başlıklı genel görev ${myName} tarafından kendi üzerine alındı.`);
+    await taskService.claimTask(task.id, props.currentUser.id);
     fetchTasks();
   } catch (error) {
     console.error('Görev üstlenilemedi:', error);
@@ -542,11 +454,7 @@ const confirmStatusUpdate = async (id) => {
 
 const updateTaskStatus = async (id, newStatus) => {
   try {
-    const task = tasks.value.find(t => t.id === id);
-    const taskName = task ? task.title : `ID: ${id}`;
-    
-    await axios.put(`http://localhost:3000/api/tasks/${id}`, { status: newStatus }, getAuthHeaders());
-    await createLog('Görev Durumu Güncellendi', `"${taskName}" başlıklı görevin durumu "${newStatus}" olarak değiştirildi.`);
+    await taskService.updateTask(id, { status: newStatus });
     fetchTasks();
   } catch (error) {
     console.error("Güncelleme hatası:", error);
@@ -557,11 +465,7 @@ const updateTaskStatus = async (id, newStatus) => {
 const deleteTask = async (id) => {
   if (confirm("Bu görevi tamamen silmek istediğinize emin misiniz?")) {
     try {
-      const task = tasks.value.find(t => t.id === id);
-      const taskName = task ? task.title : `ID: ${id}`;
-      
-      await axios.delete(`http://localhost:3000/api/tasks/${id}`, getAuthHeaders());
-      await createLog('Görev Silindi', `"${taskName}" başlıklı görev sistemden tamamen silindi.`);
+      await taskService.deleteTask(id);
       fetchTasks();
     } catch (error) {
       console.error("Silme hatası:", error);
@@ -575,7 +479,6 @@ onMounted(() => {
   fetchUsers();
   fetchTaskTypes();
 });
-
 </script>
 
 

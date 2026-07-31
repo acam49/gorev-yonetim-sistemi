@@ -55,7 +55,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
+import { authService } from '../services/authService';
+import { validatePassword } from '../utils/validators';
 
 const emit = defineEmits(['login-success', 'go-home']);
 
@@ -64,7 +65,6 @@ const errorMessage = ref('');
 const successMessage = ref('');
 const form = ref({ username: '', password: '' });
 
-// YENİ: Şifre Değiştirme Ekranı İçin Gerekli Değişkenler
 const isFirstLogin = ref(false);
 const tempUserId = ref(null);
 const newPassword = ref('');
@@ -74,8 +74,6 @@ const handleLogin = async () => {
   errorMessage.value = '';
   successMessage.value = '';
 
-  // Kullanıcı adının başındaki/sonundaki boşlukları sil,
-  // sadece boşluktan oluşuyorsa hiç gönderme
   form.value.username = form.value.username.trim();
   if (!form.value.username) {
     errorMessage.value = 'Kullanıcı adı boş bırakılamaz.';
@@ -84,19 +82,17 @@ const handleLogin = async () => {
 
   loading.value = true;
   try {
-    const response = await axios.post('http://localhost:3000/api/users/login', form.value);
+    const data = await authService.login(form.value);
     
-    // YENİ GÜVENLİK KONTROLÜ: Eğer backend "şifre değişmeli" derse içeri alma, formu değiştir!
-    if (response.data.requiresPasswordChange) {
+    if (data.requiresPasswordChange) {
       isFirstLogin.value = true;
-      tempUserId.value = response.data.userId; // Şifre değiştirirken kim olduğunu bilmek için ID'yi sakla
+      tempUserId.value = data.userId;
       loading.value = false;
       return; 
     }
 
-    // Normal girişse JWT Biletini kaydet ve içeri al
-    localStorage.setItem('token', response.data.token);
-    emit('login-success', response.data.user);
+    localStorage.setItem('token', data.token);
+    emit('login-success', data.user);
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Giriş yapılamadı, sunucuya ulaşılamıyor';
   } finally {
@@ -104,26 +100,15 @@ const handleLogin = async () => {
   }
 };
 
-// YENİ: Kalıcı Şifre Belirleme Fonksiyonu
-// Şifre kural kontrolü: en az 6 karakter, 1 büyük harf, 1 rakam
-const validatePassword = (pwd) => {
-  if (pwd.length < 6) return 'Şifre en az 6 karakter olmalıdır.';
-  if (!/[A-Z]/.test(pwd)) return 'Şifre en az 1 büyük harf içermelidir.';
-  if (!/[0-9]/.test(pwd)) return 'Şifre en az 1 rakam içermelidir.';
-  return null;
-};
-
 const handlePasswordChange = async () => {
   errorMessage.value = '';
 
-  // Kural kontrolü
   const ruleError = validatePassword(newPassword.value);
   if (ruleError) {
     errorMessage.value = ruleError;
     return;
   }
 
-  // Şifre eşleşme kontrolü
   if (newPassword.value !== confirmPassword.value) {
     errorMessage.value = 'Girdiğiniz şifreler birbiriyle uyuşmuyor!';
     return;
@@ -131,17 +116,14 @@ const handlePasswordChange = async () => {
 
   loading.value = true;
   try {
-    // Backend'de yazdığımız yeni rotaya istek atıyoruz
-    const response = await axios.post('http://localhost:3000/api/users/change-first-password', {
+    const data = await authService.changeFirstPassword({
       userId: tempUserId.value,
       newPassword: newPassword.value
     });
 
-    // Şifre başarıyla değiştiyse:
-    isFirstLogin.value = false; // Normal giriş formuna geri dön
-    successMessage.value = response.data.message; // "Şimdi yeni şifrenizle girebilirsiniz" mesajını göster
+    isFirstLogin.value = false;
+    successMessage.value = data.message;
     
-    // Eski geçici şifreyi formdan sil ki adam yeni şifresini yazıp girebilsin
     form.value.password = ''; 
     newPassword.value = '';
     confirmPassword.value = '';

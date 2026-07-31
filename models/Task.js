@@ -24,6 +24,10 @@ const Task = sequelize.define('Task', {
     deadline: {
         type: DataTypes.DATE, // Görevin bitmesi gereken tarih
         allowNull: true
+    },
+    taskTypeId: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     }
 });
 

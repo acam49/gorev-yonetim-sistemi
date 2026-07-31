@@ -50,7 +50,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { taskTypeService } from '../services/taskTypeService';
 
 defineEmits(['go-home']);
 
@@ -58,17 +58,9 @@ const types = ref([]);
 const form = ref({ name: '' });
 const errorMsg = ref('');
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: { Authorization: `Bearer ${token}` }
-  };
-};
-
 const fetchTypes = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/api/task-types', getAuthHeaders());
-    types.value = res.data;
+    types.value = await taskTypeService.getTypes();
   } catch (e) { console.error(e); }
 };
 
@@ -76,7 +68,7 @@ const addType = async () => {
   errorMsg.value = '';
   if (!form.value.name.trim()) { errorMsg.value = 'Tür adı boş olamaz.'; return; }
   try {
-    await axios.post('http://localhost:3000/api/task-types', { name: form.value.name.trim() }, getAuthHeaders());
+    await taskTypeService.createType({ name: form.value.name.trim() });
     form.value = { name: '' };
     fetchTypes();
   } catch (e) {
@@ -87,7 +79,7 @@ const addType = async () => {
 const deleteType = async (id) => {
   if (!confirm('Bu görev türünü silmek istediğinize emin misiniz?')) return;
   try {
-    await axios.delete(`http://localhost:3000/api/task-types/${id}`, getAuthHeaders());
+    await taskTypeService.deleteType(id);
     fetchTypes();
   } catch (e) { console.error(e); }
 };

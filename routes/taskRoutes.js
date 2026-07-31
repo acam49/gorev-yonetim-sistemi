@@ -1,23 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/taskController');
+const { verifyToken, requireManager } = require('../middleware/auth');
 
-const verifyToken = require('../middleware/auth');
-const { requireManager } = require('../middleware/auth');
-
-// Yeni görev oluşturma (SADECE MÜDÜR/ADMIN görev atayabilir)
+// Yeni görev oluşturma (SADECE MÜDÜR/ADMIN)
 router.post('/', verifyToken, requireManager, taskController.createTask);
 
-// Tüm görevleri listele (giriş yapmış herkes görebilir)
+// Tüm görevleri listele
 router.get('/', verifyToken, taskController.getTasks);
 
-// Belirli bir kullanıcıya atanmış aktif görevler (giriş yapmış herkes)
+// Belirli bir kullanıcıya atanmış aktif görevler
 router.get('/user/:userId', verifyToken, taskController.getTasksForUser);
 
-// Görev güncelleme: kimin güncelleyebileceği controller içinde kontrol ediliyor
+// Görev güncelleme / Kendine al
 router.put('/:id', verifyToken, taskController.updateTask);
 
-// Görev silme: aynı şekilde yetki kontrolü controller içinde
+// Görev silme
 router.delete('/:id', verifyToken, taskController.deleteTask);
 
 module.exports = router;

@@ -68,19 +68,20 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { authService } from './services/authService';
+import { useAuth } from './composables/useAuth';
 
 // BÜTÜN SAYFALARIN İMPORT EDİLDİĞİ KISIM
 import LandingView from './components/LandingView.vue';
 import Login from './components/Login.vue';
 import Dashboard from './components/Dashboard.vue';
 import TaskManager from './components/TaskManager.vue';
-import Personnel from './components/Personnel.vue'
+import Personnel from './components/Personnel.vue';
 import TaskTypes from './components/TaskTypes.vue';
 import SystemLogs from './components/SystemLogs.vue';
 
-const currentUser = ref(null);
-const currentView = ref('landing'); // Sistemin ilk açılış noktası
+const { currentUser, initAuth, setAuthUser } = useAuth();
+const currentView = ref('landing');
 
 const petals = ref(
   Array.from({ length: 22 }, (_, i) => ({
@@ -95,23 +96,14 @@ const petals = ref(
 );
 
 const handleLoginSuccess = (user) => {
-  currentUser.value = user;
-  localStorage.setItem('currentUser', JSON.stringify(user));
+  setAuthUser(user);
   currentView.value = 'dashboard';
 };
 
 const handleLogout = async () => {
-  try {
-    await axios.put(`http://localhost:3000/api/users/logout/${currentUser.value.id}`);
-  } catch (error) {
-    console.error('Çıkış hatası:', error);
-  }
+  await authService.logout(currentUser.value?.id);
   currentUser.value = null;
   currentView.value = 'landing';
-  localStorage.removeItem('currentUser');
-  
-  // JWT token'ı sil
-  localStorage.removeItem('token');
 };
 
 const goTo = (view) => {
@@ -119,10 +111,9 @@ const goTo = (view) => {
 };
 
 onMounted(() => {
-  const savedUser = localStorage.getItem('currentUser');
-  if (savedUser) {
-    currentUser.value = JSON.parse(savedUser);
-    currentView.value = 'dashboard'; // Hafızada kullanıcı varsa ana panele atla
+  initAuth();
+  if (currentUser.value) {
+    currentView.value = 'dashboard';
   }
 });
 </script>
