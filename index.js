@@ -42,8 +42,13 @@ async function initDB() {
         await sequelize.authenticate();
         console.log('Veritabanı bağlantısı başarıyla kuruldu.');
 
-        await sequelize.sync({ alter: true });
-        console.log('Veritabanı tabloları senkronize edildi.');
+        const isProduction = process.env.NODE_ENV === 'production';
+        if (isProduction) {
+            console.log('Production modunda veritabanı şema yönetimi migration komutları ile yürütülür.');
+        } else {
+            await sequelize.sync({ alter: true });
+            console.log('Geliştirme (dev) modunda veritabanı tabloları senkronize edildi.');
+        }
 
         // İlk admin oluşturma — Service katmanı üzerinden
         await userService.seedAdmin();

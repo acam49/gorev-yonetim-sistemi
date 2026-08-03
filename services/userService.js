@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const userRepository = require('../repositories/userRepository');
+const taskRepository = require('../repositories/taskRepository');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -13,8 +14,9 @@ const transporter = nodemailer.createTransport({
 });
 
 class UserService {
-    constructor(userRepo = userRepository) {
+    constructor(userRepo = userRepository, taskRepo = taskRepository) {
         this.userRepository = userRepo;
+        this.taskRepository = taskRepo;
     }
 
     _validatePassword(password) {
@@ -267,8 +269,7 @@ class UserService {
             throw error;
         }
 
-        const taskRepository = require('../repositories/taskRepository');
-        await taskRepository.unassignUserTasks(id);
+        await this.taskRepository.unassignUserTasks(id);
 
         await this.userRepository.delete(id);
         return { message: 'Personel sistemden silindi ve üzerindeki tüm görevler Genel görevlere çevrildi.' };
