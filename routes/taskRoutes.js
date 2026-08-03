@@ -12,10 +12,10 @@ router.get('/', verifyToken, taskController.getTasks);
 // Belirli bir kullanıcıya atanmış aktif görevler
 router.get('/user/:userId', verifyToken, taskController.getTasksForUser);
 
-// Görev güncelleme / Kendine al
+// Görev güncelleme / Kendine al (Yetki kontrolü taskService içinde yapılır: Müdür, Görev Sahibi veya Sahipsiz Görev üstlenen)
 router.put('/:id', verifyToken, taskController.updateTask);
 
-// Görev silme
+// Görev silme (Yetki kontrolü taskService içinde yapılır: Müdür veya Görev Sahibi silebilir, Arşivdeki görevi sadece Müdür siler)
 router.delete('/:id', verifyToken, taskController.deleteTask);
 
 module.exports = router;

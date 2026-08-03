@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import { authService } from '../services/authService';
+import { isManagerOrAdmin } from '../constants/roles';
 
 const currentUser = ref(null);
 
@@ -8,9 +9,7 @@ export function useAuth() {
   const isAuthenticated = computed(() => !!currentUser.value && !!token.value);
 
   const hasAdminAccess = computed(() => {
-    if (!currentUser.value || !currentUser.value.role) return false;
-    const role = currentUser.value.role.trim().toLocaleLowerCase('tr-TR');
-    return role === 'admin' || role === 'müdür' || role === 'mudur';
+    return isManagerOrAdmin(currentUser.value?.role);
   });
 
   const initAuth = () => {

@@ -1,11 +1,7 @@
 const taskRepository = require('../repositories/taskRepository');
 const userRepository = require('../repositories/userRepository');
 const logRepository = require('../repositories/logRepository');
-
-const isManagerRole = (role) => {
-    const r = (role || '').trim().toLocaleLowerCase('tr-TR');
-    return r === 'müdür' || r === 'admin';
-};
+const { isManagerOrAdmin } = require('../config/roles');
 
 class TaskService {
     constructor(taskRepo = taskRepository, userRepo = userRepository, logRepo = logRepository) {
@@ -76,7 +72,7 @@ class TaskService {
         const isOwner = currentUser && task.assignedToId === currentUser.id;
         const isUnassigned = !task.assignedToId;
 
-        if (currentUser && !isManagerRole(currentUser.role) && !isOwner && !isUnassigned) {
+        if (currentUser && !isManagerOrAdmin(currentUser.role) && !isOwner && !isUnassigned) {
             const error = new Error('Bu görevi güncelleme yetkiniz yok.');
             error.status = 403;
             throw error;
@@ -127,7 +123,7 @@ class TaskService {
             throw error;
         }
 
-        const isManager = currentUser && isManagerRole(currentUser.role);
+        const isManager = currentUser && isManagerOrAdmin(currentUser.role);
         const isOwner = currentUser && task.assignedToId === currentUser.id;
 
         if (task.status === 'Tamamlandı' && !isManager) {

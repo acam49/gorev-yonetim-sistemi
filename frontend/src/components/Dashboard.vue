@@ -249,6 +249,7 @@ import { userService } from '../services/userService';
 import { authService } from '../services/authService';
 import { validatePassword } from '../utils/validators';
 import { formatDate } from '../utils/formatters';
+import { isManagerOrAdmin } from '../constants/roles';
 
 const props = defineProps({
   currentUser: { type: Object, required: true }
@@ -303,9 +304,7 @@ const loading = ref(true);
 const error = ref(false);
 
 const hasAdminAccess = computed(() => {
-  if (!props.currentUser || !props.currentUser.role) return false;
-  const role = props.currentUser.role.trim().toLocaleLowerCase('tr-TR');
-  return role === 'admin' || role === 'müdür' || role === 'mudur';
+  return isManagerOrAdmin(props.currentUser?.role);
 });
 
 const fetchAssignedTasks = async () => {

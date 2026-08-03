@@ -325,6 +325,7 @@ import { taskService } from '../services/taskService';
 import { taskTypeService } from '../services/taskTypeService';
 import { userService } from '../services/userService';
 import { getTodayString } from '../utils/formatters';
+import { isManagerOrAdmin } from '../constants/roles';
 
 const props = defineProps({
   currentUser: { type: Object, required: true }
@@ -332,9 +333,7 @@ const props = defineProps({
 defineEmits(['go-home', 'logout']);
 
 const hasAdminAccess = computed(() => {
-  if (!props.currentUser || !props.currentUser.role) return false;
-  const role = props.currentUser.role.trim().toLowerCase();
-  return role === 'admin' || role === 'müdür' || role === 'mudur';
+  return isManagerOrAdmin(props.currentUser?.role);
 });
 
 const canRestoreTask = (task) => {
