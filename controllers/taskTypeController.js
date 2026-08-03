@@ -5,31 +5,31 @@ class TaskTypeController {
         this.taskTypeService = typeSvc;
     }
 
-    getAllTypes = async (req, res) => {
+    getAllTypes = async (req, res, next) => {
         try {
             const types = await this.taskTypeService.getAllTypes();
             res.status(200).json(types);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    createType = async (req, res) => {
+    createType = async (req, res, next) => {
         try {
             const newType = await this.taskTypeService.createType(req.body);
             res.status(201).json(newType);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    deleteType = async (req, res) => {
+    deleteType = async (req, res, next) => {
         try {
             const { id } = req.params;
             const result = await this.taskTypeService.deleteType(id);
             res.status(200).json(result);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 }

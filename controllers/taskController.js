@@ -5,51 +5,51 @@ class TaskController {
         this.taskService = taskSvc;
     }
 
-    createTask = async (req, res) => {
+    createTask = async (req, res, next) => {
         try {
             const newTask = await this.taskService.createTask(req.body, req.user);
             res.status(201).json(newTask);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    getTasks = async (req, res) => {
+    getTasks = async (req, res, next) => {
         try {
             const tasks = await this.taskService.getAllTasks();
             res.status(200).json(tasks);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    updateTask = async (req, res) => {
+    updateTask = async (req, res, next) => {
         try {
             const { id } = req.params;
             const updatedTask = await this.taskService.updateTask(id, req.body, req.user);
             res.status(200).json(updatedTask);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    deleteTask = async (req, res) => {
+    deleteTask = async (req, res, next) => {
         try {
             const { id } = req.params;
             const result = await this.taskService.deleteTask(id, req.user);
             res.status(200).json(result);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    getTasksForUser = async (req, res) => {
+    getTasksForUser = async (req, res, next) => {
         try {
             const { userId } = req.params;
             const tasks = await this.taskService.getTasksForUser(userId);
             res.status(200).json(tasks);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 }

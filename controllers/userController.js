@@ -5,16 +5,16 @@ class UserController {
         this.userService = userSvc;
     }
 
-    getAllUsers = async (req, res) => {
+    getAllUsers = async (req, res, next) => {
         try {
             const users = await this.userService.getAllUsers();
             res.status(200).json(users);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    register = async (req, res) => {
+    register = async (req, res, next) => {
         try {
             const user = await this.userService.registerUser(req.body);
             res.status(201).json({
@@ -22,11 +22,11 @@ class UserController {
                 user
             });
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    login = async (req, res) => {
+    login = async (req, res, next) => {
         try {
             const { username, password } = req.body;
             const result = await this.userService.login(username, password);
@@ -40,59 +40,59 @@ class UserController {
             }
             res.status(200).json(result);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    changeFirstPassword = async (req, res) => {
+    changeFirstPassword = async (req, res, next) => {
         try {
             const { userId, newPassword } = req.body;
             const result = await this.userService.changeFirstPassword(userId, newPassword);
             res.status(200).json(result);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    changePassword = async (req, res) => {
+    changePassword = async (req, res, next) => {
         try {
             const { currentPassword, newPassword } = req.body;
             const userId = req.user.id;
             const result = await this.userService.changePassword(userId, currentPassword, newPassword);
             res.status(200).json(result);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    logout = async (req, res) => {
+    logout = async (req, res, next) => {
         try {
             const { id } = req.params;
             res.clearCookie('token');
             const result = await this.userService.logout(id);
             res.status(200).json(result);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    updateUser = async (req, res) => {
+    updateUser = async (req, res, next) => {
         try {
             const { id } = req.params;
             const updatedUser = await this.userService.updateUser(id, req.body);
             res.status(200).json({ message: 'Personel bilgileri başarıyla güncellendi', user: updatedUser });
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 
-    deleteUser = async (req, res) => {
+    deleteUser = async (req, res, next) => {
         try {
             const { id } = req.params;
             const result = await this.userService.deleteUser(id);
             res.status(200).json(result);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error);
         }
     };
 }

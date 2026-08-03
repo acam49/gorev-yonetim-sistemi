@@ -6,8 +6,9 @@ require('dotenv').config();
 // Modeller ve ilişkiler merkezi dosyadan yükleniyor
 const { sequelize } = require('./models');
 
-// Servisler
+// Servisler ve Middleware
 const userService = require('./services/userService');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -29,6 +30,9 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/task-types', taskTypeRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/users', userRoutes);
+
+// Global Error Handler (Tüm rotaların en altında yer almalı)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 

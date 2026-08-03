@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/taskController');
 const { verifyToken, requireManager } = require('../middleware/auth');
+const { validateCreateTask } = require('../middleware/validator');
 
 // Yeni görev oluşturma (SADECE MÜDÜR/ADMIN)
-router.post('/', verifyToken, requireManager, taskController.createTask);
+router.post('/', verifyToken, requireManager, validateCreateTask, taskController.createTask);
 
 // Tüm görevleri listele
 router.get('/', verifyToken, taskController.getTasks);
