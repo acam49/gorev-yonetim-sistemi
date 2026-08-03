@@ -104,15 +104,20 @@ class UserService {
             `
         };
 
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) console.error('Mail gönderilemedi:', err.message);
-            else console.log('Mail gönderildi:', info.response);
-        });
+        let emailSent = false;
+        try {
+            const mailInfo = await transporter.sendMail(mailOptions);
+            console.log('E-posta başarıyla gönderildi:', mailInfo.response);
+            emailSent = true;
+        } catch (mailError) {
+            console.error('E-posta gönderim hatası:', mailError.message);
+        }
 
         return {
             id: newUser.id,
             username: newUser.username,
-            fullName: newUser.fullName
+            fullName: newUser.fullName,
+            emailSent
         };
     }
 
