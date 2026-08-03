@@ -30,6 +30,14 @@ class UserController {
         try {
             const { username, password } = req.body;
             const result = await this.userService.login(username, password);
+            if (result.token) {
+                res.cookie('token', result.token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: 8 * 60 * 60 * 1000
+                });
+            }
             res.status(200).json(result);
         } catch (error) {
             res.status(error.status || 500).json({ message: error.message });
@@ -60,6 +68,7 @@ class UserController {
     logout = async (req, res) => {
         try {
             const { id } = req.params;
+            res.clearCookie('token');
             const result = await this.userService.logout(id);
             res.status(200).json(result);
         } catch (error) {

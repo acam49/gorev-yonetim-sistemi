@@ -5,7 +5,7 @@ const User = sequelize.define('User', {
     username: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true // KORUMA 1: İki aynı kullanıcı adı olamaz
+        unique: true
     },
     password: {
         type: DataTypes.STRING,
@@ -16,19 +16,19 @@ const User = sequelize.define('User', {
     },
     tcNo: {
         type: DataTypes.STRING,
-        unique: true // KORUMA 2: Aynı TC ile iki kayıt açılamaz
+        unique: true
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true // KORUMA 3: Her e-posta tek bir hesaba bağlı olmalı
+        unique: true
     },
     role: {
         type: DataTypes.STRING
     },
     isFirstLogin: {
         type: DataTypes.BOOLEAN,
-        defaultValue: true // YENİ: Yeni açılan her hesap şifre değiştirmek ZORUNDADIR
+        defaultValue: true
     },
     isOnline: {
         type: DataTypes.BOOLEAN,
@@ -39,6 +39,15 @@ const User = sequelize.define('User', {
     },
     lastLogout: {
         type: DataTypes.DATE 
+    }
+}, {
+    defaultScope: {
+        attributes: { exclude: ['password'] }
+    },
+    scopes: {
+        withPassword: {
+            attributes: {}
+        }
     }
 });
 

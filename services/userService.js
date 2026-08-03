@@ -126,7 +126,7 @@ class UserService {
             throw error;
         }
 
-        const user = await this.userRepository.findByUsername(cleanUsername);
+        const user = await this.userRepository.findByUsernameWithPassword(cleanUsername);
         if (!user) {
             const error = new Error('Kullanıcı adı veya şifre hatalı');
             error.status = 401;
@@ -185,7 +185,7 @@ class UserService {
     }
 
     async changePassword(userId, currentPassword, newPassword) {
-        const user = await this.userRepository.findById(userId);
+        const user = await this.userRepository.findByIdWithPassword(userId);
         if (!user) {
             const error = new Error('Kullanıcı bulunamadı.');
             error.status = 404;

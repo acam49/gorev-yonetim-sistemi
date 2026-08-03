@@ -9,8 +9,16 @@ class UserRepository {
         return await User.findByPk(id);
     }
 
+    async findByIdWithPassword(id) {
+        return await User.scope('withPassword').findByPk(id);
+    }
+
     async findByUsername(username) {
         return await User.findOne({ where: { username } });
+    }
+
+    async findByUsernameWithPassword(username) {
+        return await User.scope('withPassword').findOne({ where: { username } });
     }
 
     async findByTcNo(tcNo) {

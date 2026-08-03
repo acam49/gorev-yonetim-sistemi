@@ -1,14 +1,18 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-    const token = req.header('Authorization');
+    // 1. Önce HttpOnly Cookie kontrol et, yoksa Authorization header'a bak
+    let token = req.cookies?.token;
+    if (!token && req.header('Authorization')) {
+        token = req.header('Authorization').replace('Bearer ', '');
+    }
 
     if (!token) {
         return res.status(401).json({ message: 'Erişim reddedildi. Önce giriş yapmalısınız.' });
     }
 
     try {
-        const verifiedToken = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET);
+        const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
         req.user = verifiedToken;
         next();
     } catch (error) {
