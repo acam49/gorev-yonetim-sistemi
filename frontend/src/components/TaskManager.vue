@@ -23,16 +23,12 @@
           <div class="status-indicator"></div>
 
           <div class="user-details">
-
-            <strong>Aktif Kullanıcı: {{ currentUser.fullName || currentUser.username }}</strong>
-
-            <span style="display:block; font-size: 11px; color: rgba(255,255,255,0.5);">Yetki: {{ currentUser.role || 'Personel' }}</span>
-
+            <strong>Aktif Kullanıcı: {{ currentUser?.fullName || currentUser?.username }}</strong>
+            <span style="display:block; font-size: 11px; color: rgba(255,255,255,0.5);">Yetki: {{ currentUser?.role || 'Personel' }}</span>
           </div>
 
-          <button @click="$emit('go-home')" class="btn-glow" style="margin-left: 10px;">Ana Sayfa</button>
-
-          <button @click="$emit('logout')" class="btn-delete" style="margin-left: 10px;">Çıkış Yap</button>
+          <button @click="router.push('/dashboard')" class="btn-glow" style="margin-left: 10px;">Ana Sayfa</button>
+          <button @click="handleLogout" class="btn-delete" style="margin-left: 10px;">Çıkış Yap</button>
 
         </div>
 
@@ -321,19 +317,25 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
 import { taskService } from '../services/taskService';
 import { taskTypeService } from '../services/taskTypeService';
 import { userService } from '../services/userService';
 import { getTodayString } from '../utils/formatters';
 import { isManagerOrAdmin } from '../constants/roles';
 
-const props = defineProps({
-  currentUser: { type: Object, required: true }
-});
-defineEmits(['go-home', 'logout']);
+const router = useRouter();
+const authStore = useAuthStore();
+const currentUser = computed(() => authStore.currentUser);
+
+const handleLogout = async () => {
+  await authStore.logout();
+  router.push('/login');
+};
 
 const hasAdminAccess = computed(() => {
-  return isManagerOrAdmin(props.currentUser?.role);
+  return isManagerOrAdmin(currentUser.value?.role);
 });
 
 const canRestoreTask = (task) => {

@@ -4,19 +4,16 @@
       <div class="glass-panel login-box">
         <h1 class="glow-text" style="text-align:center; margin-bottom: 5px;">Görev Yönetim Sistemi</h1>
         
-        <!-- BAŞLIK DİNAMİKLEŞTİ: İlk girişse farklı, normalse farklı yazı -->
         <p class="login-subtitle">
           {{ isFirstLogin ? 'Güvenliğiniz için kalıcı şifrenizi belirleyin.' : 'Sisteme Giriş Yap' }}
         </p>
 
         <!-- 1. DURUM: NORMAL GİRİŞ FORMU -->
         <form v-if="!isFirstLogin" @submit.prevent="handleLogin" class="login-form">
-          <!-- İsim Soyisim yerine artık Kullanıcı Adı ile giriş yapılıyor -->
           <input v-model="form.username" type="text" placeholder="Kullanıcı Adı" required>
           <input v-model="form.password" type="password" placeholder="Şifre" required>
 
           <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-          <!-- Başarılı şifre değiştirme sonrası çıkacak yeşil mesaj -->
           <p v-if="successMessage" style="color: #2ecc71; font-size: 12px; margin:0; text-align:center;">
             {{ successMessage }}
           </p>
@@ -25,15 +22,14 @@
             {{ loading ? 'Lütfen bekleyin...' : 'Giriş Yap' }}
           </button>
           
-          <button type="button" @click="$emit('go-home')" class="btn-back">
+          <button type="button" @click="router.push('/')" class="btn-back">
             ← Ana Sayfaya Dön
           </button>
         </form>
 
-        <!-- 2. DURUM: İLK GİRİŞ ŞİFRE DEĞİŞTİRME FORMU (GÜVENLİK KALKANI) -->
+        <!-- 2. DURUM: İLK GİRİŞ ŞİFRE DEĞİŞTİRME FORMU -->
         <form v-else @submit.prevent="handlePasswordChange" class="login-form">
           <input v-model="newPassword" type="password" placeholder="Yeni Kalıcı Şifreniz" required minlength="6">
-          <!-- Anlık şifre kural göstergesi -->
           <div v-if="newPassword.length > 0" class="pwd-hints">
             <span :class="newPassword.length >= 6 ? 'hint-ok' : 'hint-fail'">✓ En az 6 karakter</span>
             <span :class="/[A-Z]/.test(newPassword) ? 'hint-ok' : 'hint-fail'">✓ En az 1 büyük harf</span>
@@ -55,10 +51,13 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
 import { authService } from '../services/authService';
 import { validatePassword } from '../utils/validators';
 
-const emit = defineEmits(['login-success', 'go-home']);
+const router = useRouter();
+const authStore = useAuthStore();
 
 const loading = ref(false);
 const errorMessage = ref('');
@@ -82,7 +81,7 @@ const handleLogin = async () => {
 
   loading.value = true;
   try {
-    const data = await authService.login(form.value);
+    const data = await authStore.login(form.value.username, form.value.password);
     
     if (data.requiresPasswordChange) {
       isFirstLogin.value = true;
@@ -91,8 +90,7 @@ const handleLogin = async () => {
       return; 
     }
 
-    localStorage.setItem('token', data.token);
-    emit('login-success', data.user);
+    router.push('/dashboard');
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Giriş yapılamadı, sunucuya ulaşılamıyor';
   } finally {
@@ -136,7 +134,6 @@ const handlePasswordChange = async () => {
 </script>
 
 <style scoped>
-/* Mevcut CSS Kodların - Hiçbir Şeyi Bozmadık */
 .login-wrapper { min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; }
 .login-box { width: 100%; max-width: 380px; }
 .login-subtitle { color: rgba(255,255,255,0.5); font-size: 12px; text-align: center; margin-bottom: 25px; }

@@ -14,7 +14,7 @@
           </h2>
         </div>
         <div>
-          <button @click="$emit('go-login')" class="btn-glow-pink btn-small">Sisteme Giriş</button>
+          <button @click="router.push('/login')" class="btn-glow-pink btn-small">Sisteme Giriş</button>
         </div>
       </nav>
 
@@ -89,7 +89,6 @@
           <div class="footer-section">
             <h4 class="footer-title">Sosyal Ağlar</h4>
             <div class="social-links">
-              <!-- Emojiler yazıların altına eklendi -->
               <a href="#" class="social-icon">
                 <span>LinkedIn</span>
                 <span class="social-emoji"></span>
@@ -106,7 +105,6 @@
           </div>
         </div>
 
-        <!-- ARAYA ÇEKİLEN ŞIK PARLAYAN ÇİZGİ -->
         <div class="footer-divider"></div>
 
         <div class="footer-bottom">
@@ -120,18 +118,16 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-
-// --- VİDEOYU VITE İÇİN GARANTİLİ ŞEKİLDE İÇERİ AKTARIYORUZ ---
+import { useRouter } from 'vue-router';
 import videoPath from '../assets/vitrin-video.mp4';
 
-defineEmits(['go-login']);
+const router = useRouter();
 
 // DAKTİLO (TYPEWRITER) EFEKTİ
 const fullText = "Operasyonları Tek Ekrandan Yönetin";
 const typedText = ref("");
 const isTypingDone = ref(false);
 
-// BİZE ULAŞIN (E-POSTA KOPYALAMA) MANTIĞI
 const contactBtnText = ref("Sistemi kullanmak için bize ulaşın");
 
 const copyEmail = async () => {
@@ -160,7 +156,6 @@ const typeWriter = () => {
   }, 70); 
 };
 
-// CANLI SAYAÇ (COUNTER) MANTIĞI
 const stats = ref({ tasks: 0, users: 0, uptime: 0 });
 
 const animateValue = (targetKey, endValue, duration) => {
@@ -185,7 +180,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* SADECE BU SAYFAYA ÖZEL ARKA PLAN */
 .landing-custom-bg {
   min-height: 100vh;
   width: 100vw;
@@ -197,7 +191,6 @@ onMounted(() => {
   overflow-y: auto; 
 }
 
-/* --- YENİ VİDEO STİLLERİ --- */
 .bg-video {
   position: fixed;
   top: 0;
@@ -223,7 +216,6 @@ onMounted(() => {
   padding-bottom: 60px;
 }
 
-/* ÜST NAVİGASYON */
 .landing-nav {
   display: flex;
   justify-content: space-between;
@@ -258,7 +250,6 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
-/* ANA VİTRİN METİN ALANI */
 .hero-container {
   display: flex;
   flex-direction: column;
@@ -296,7 +287,6 @@ onMounted(() => {
 
 .action-btn { font-size: 16px; padding: 16px 45px; border-radius: 16px; }
 
-/* SAYAÇ BÖLÜMÜ */
 .stats-container {
   display: flex;
   justify-content: center;
@@ -322,7 +312,6 @@ onMounted(() => {
   margin: 0;
 }
 
-/* YUVARLAK KÖŞELİ ŞEFFAF PEMBE KARTLAR */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -352,7 +341,6 @@ onMounted(() => {
 .feature-title { color: #fff; font-size: 20px; margin-bottom: 15px; }
 .feature-text { color: rgba(255, 255, 255, 0.5); font-size: 14px; line-height: 1.6; }
 
-/* FOOTER (ALT BİLGİ) STİLLERİ */
 .glass-footer {
   background: rgba(10, 20, 30, 0.4);
   backdrop-filter: blur(12px);
@@ -371,7 +359,6 @@ onMounted(() => {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 30px;
-  /* Eski alt çizgiyi kaldırdık, yerine şık gradient çizgi ekledik */
 }
 
 .footer-section {
@@ -403,10 +390,9 @@ onMounted(() => {
 
 .social-links {
   display: flex;
-  gap: 25px; /* Emojiler alt alta olduğu için biraz daha aralık açtık */
+  gap: 25px;
 }
 
-/* YENİ SOSYAL AĞ VE EMOJİ TASARIMI */
 .social-icon {
   display: flex;
   flex-direction: column;
@@ -433,7 +419,6 @@ onMounted(() => {
   transform: scale(1.2);
 }
 
-/* YENİ: ORTASI PARLAYAN ŞIK ÇİZGİ */
 .footer-divider {
   width: 100%;
   height: 1px;

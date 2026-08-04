@@ -7,7 +7,7 @@
           <h1 class="glow-text">Görev Türleri Yönetimi</h1>
           <p style="color:rgba(255,255,255,0.5); font-size:12px; margin-top:5px;">Görev atarken seçilecek türleri buradan tanımlayın.</p>
         </div>
-        <button @click="$emit('go-home')" class="btn-glow">Ana Sayfa</button>
+        <button @click="router.push('/dashboard')" class="btn-glow">Ana Sayfa</button>
       </header>
 
       <!-- YENİ TÜR EKLEME -->

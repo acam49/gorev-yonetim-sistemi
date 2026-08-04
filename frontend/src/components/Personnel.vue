@@ -11,7 +11,7 @@
             Sisteme kayıtlı tüm personelleri buradan yönetebilirsiniz. Şifreler güvenlik gereği sistem tarafından otomatik atanır.
           </p>
         </div>
-        <button @click="$emit('go-home')" class="btn-glow" style="padding: 8px 15px; font-size: 12px;">Ana Panele Dön</button>
+        <button @click="router.push('/dashboard')" class="btn-glow" style="padding: 8px 15px; font-size: 12px;">Ana Panele Dön</button>
       </div>
 
       <!-- PERSONEL EKLEME / GÜNCELLEME FORMU -->
@@ -95,9 +95,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { userService } from '../services/userService';
 
-defineEmits(['go-home']);
+const router = useRouter();
 
 const personnelList = ref([]);
 const isEditing = ref(false);

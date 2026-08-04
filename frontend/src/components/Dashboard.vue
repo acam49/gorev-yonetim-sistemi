@@ -7,13 +7,13 @@
         <h2 class="glow-text" style="font-size:18px; margin-bottom: 30px;">Görev Yönetim Sistemi</h2>
 
         <nav class="side-menu">
-          <!-- Görevler Menüsü (Herkes görebilir) -->
+          <!-- Görevler Menüsü -->
           <div class="menu-item" @click="tasksMenuOpen = !tasksMenuOpen">
             <span>Görevler</span>
             <span class="menu-arrow" :class="{ open: tasksMenuOpen }">▾</span>
           </div>
           <div v-if="tasksMenuOpen" class="submenu">
-            <div class="submenu-item" @click="$emit('navigate', 'tasks')">Görev Yönetimi</div>
+            <div class="submenu-item" @click="router.push('/tasks')">Görev Yönetimi</div>
           </div>
 
           <!-- Yönetim Menüsü (SADECE MÜDÜR VE ADMİN GÖREBİLİR) -->
@@ -22,21 +22,21 @@
             <span class="menu-arrow" :class="{ open: adminMenuOpen }">▾</span>
           </div>
           <div v-if="adminMenuOpen && hasAdminAccess" class="submenu">
-            <div class="submenu-item" @click="$emit('navigate', 'personnel')">Personel Yönetimi</div>
-            <div class="submenu-item" @click="$emit('navigate', 'task-types')">Görev Türleri</div>
-            <div class="submenu-item" @click="$emit('navigate', 'logs')">Sistem Geçmişi</div>
+            <div class="submenu-item" @click="router.push('/personnel')">Personel Yönetimi</div>
+            <div class="submenu-item" @click="router.push('/task-types')">Görev Türleri</div>
+            <div class="submenu-item" @click="router.push('/logs')">Sistem Geçmişi</div>
           </div>
         </nav>
 
         <button @click="showPasswordModal = true" class="btn-glow" style="width:100%; margin-top:10px; font-size:12px;">Şifremi Değiştir</button>
-        <button @click="$emit('logout')" class="btn-delete" style="width:100%; margin-top: 10px;">Çıkış Yap</button>
+        <button @click="handleLogout" class="btn-delete" style="width:100%; margin-top: 10px;">Çıkış Yap</button>
       </aside>
 
       <!-- ANA İÇERİK -->
       <main class="dashboard-main">
         <header class="glass-panel header-panel">
           <div>
-            <h1 class="glow-text">Hoş Geldin, {{ currentUser.fullName || currentUser.username }}</h1>
+            <h1 class="glow-text">Hoş Geldin, {{ currentUser?.fullName || currentUser?.username }}</h1>
             <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 5px;">Görev Yönetim Sistemi Ana Panel</p>
           </div>
         </header>
@@ -44,8 +44,8 @@
         <!-- ================= MÜDÜR / ADMİN PANOSU ================= -->
         <template v-if="hasAdminAccess">
 
-          <p v-if="loading" class="plain-text">Görevler kontrol ediliyor...</p>
-          <p v-else-if="error" class="plain-text" style="color:#ff4d4d;">Görevler alınamadı, backend çalışıyor mu kontrol edin.</p>
+          <p v-if="taskStore.loading" class="plain-text">Görevler kontrol ediliyor...</p>
+          <p v-else-if="taskStore.error" class="plain-text" style="color:#ff4d4d;">{{ taskStore.error }}</p>
 
           <template v-else>
             
@@ -59,10 +59,10 @@
                   v-for="t in myAdminTasks"
                   :key="t.id"
                   class="task-alert-card"
-                  @click="$emit('navigate', 'tasks')"
+                  @click="router.push('/tasks')"
                   title="Görev sayfasına gitmek için tıklayın"
                 >
-                  <p class="alert-title">Sevgili {{ currentUser.fullName || currentUser.username }}, adınıza görev atanmıştır.</p>
+                  <p class="alert-title">Sevgili {{ currentUser?.fullName || currentUser?.username }}, adınıza görev atanmıştır.</p>
                   <p class="alert-task-name">{{ t.title }}</p>
                   <p class="alert-detail">Başlangıç Tarihi: <span style="color:#00f2ff;">{{ formatDate(t.plannedDate) }}</span></p>
                   <p class="alert-detail">Bitiş Tarihi: <span style="color:#00f2ff;">{{ formatDate(t.deadline) }}</span></p>
@@ -90,7 +90,7 @@
                     v-for="t in normalOngoingTasks"
                     :key="t.id"
                     class="clickable-row"
-                    @click="$emit('navigate', 'tasks')"
+                    @click="router.push('/tasks')"
                     title="Görev sayfasına gitmek için tıklayın"
                   >
                     <td style="color:#fff; font-weight:bold;">{{ t.title }}</td>
@@ -130,7 +130,7 @@
                     v-for="t in problemTasks"
                     :key="t.id"
                     class="clickable-row row-blink"
-                    @click="$emit('navigate', 'tasks')"
+                    @click="router.push('/tasks')"
                     title="Görev sayfasına gitmek için tıklayın"
                   >
                     <td style="color:#fff; font-weight:bold;">{{ t.title }}</td>
@@ -188,19 +188,19 @@
         <div class="glass-panel" v-else>
           <h3 class="panel-title">ADINIZA ATANAN GÖREVLER</h3>
 
-          <p v-if="loading" class="plain-text">Görevler kontrol ediliyor...</p>
-          <p v-else-if="error" class="plain-text" style="color:#ff4d4d;">Görevler alınamadı, backend çalışıyor mu kontrol edin.</p>
-          <p v-else-if="tasks.length === 0" class="plain-text">Adınıza kayıtlı aktif görev bulunmamaktadır.</p>
+          <p v-if="taskStore.loading" class="plain-text">Görevler kontrol ediliyor...</p>
+          <p v-else-if="taskStore.error" class="plain-text" style="color:#ff4d4d;">{{ taskStore.error }}</p>
+          <p v-else-if="myStaffTasks.length === 0" class="plain-text">Adınıza kayıtlı aktif görev bulunmamaktadır.</p>
 
           <div v-else class="task-alert-list">
             <div
-              v-for="t in tasks"
+              v-for="t in myStaffTasks"
               :key="t.id"
               class="task-alert-card"
-              @click="$emit('navigate', 'tasks')"
+              @click="router.push('/tasks')"
               title="Görev sayfasına gitmek için tıklayın"
             >
-              <p class="alert-title">Sevgili {{ currentUser.fullName || currentUser.username }}, adınıza görev atanmıştır.</p>
+              <p class="alert-title">Sevgili {{ currentUser?.fullName || currentUser?.username }}, adınıza görev atanmıştır.</p>
               <p class="alert-task-name">{{ t.title }}</p>
               <p class="alert-detail">Başlangıç Tarihi: <span style="color:#00f2ff;">{{ formatDate(t.plannedDate) }}</span></p>
               <p class="alert-detail">Bitiş Tarihi: <span style="color:#00f2ff;">{{ formatDate(t.deadline) }}</span></p>
@@ -221,7 +221,6 @@
         <input v-model="pwForm.currentPassword" type="password" placeholder="Mevcut Şifreniz" class="modal-input">
         <input v-model="pwForm.newPassword" type="password" placeholder="Yeni Şifreniz" class="modal-input">
 
-        <!-- Anlık kural göstergesi -->
         <div v-if="pwForm.newPassword.length > 0" class="pwd-hints">
           <span :class="pwForm.newPassword.length >= 6 ? 'hint-ok' : 'hint-fail'">✓ En az 6 karakter</span>
           <span :class="/[A-Z]/.test(pwForm.newPassword) ? 'hint-ok' : 'hint-fail'">✓ En az 1 büyük harf</span>
@@ -244,19 +243,24 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { taskService } from '../services/taskService';
-import { userService } from '../services/userService';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+import { useTaskStore } from '../stores/task';
+import { useUserStore } from '../stores/user';
 import { authService } from '../services/authService';
 import { validatePassword } from '../utils/validators';
 import { formatDate } from '../utils/formatters';
-import { isManagerOrAdmin } from '../constants/roles';
 
-const props = defineProps({
-  currentUser: { type: Object, required: true }
-});
-defineEmits(['navigate', 'logout']);
+const router = useRouter();
+const authStore = useAuthStore();
+const taskStore = useTaskStore();
+const userStore = useUserStore();
+
+const currentUser = computed(() => authStore.currentUser);
+const hasAdminAccess = computed(() => authStore.hasAdminAccess);
 
 const tasksMenuOpen = ref(false);
+const adminMenuOpen = ref(false);
 
 const showPasswordModal = ref(false);
 const pwForm = ref({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -268,6 +272,11 @@ const closePasswordModal = () => {
   pwForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
   pwError.value = '';
   pwSuccess.value = '';
+};
+
+const handleLogout = async () => {
+  await authStore.logout();
+  router.push('/login');
 };
 
 const handleChangePassword = async () => {
@@ -296,51 +305,9 @@ const handleChangePassword = async () => {
   }
 };
 
-const adminMenuOpen = ref(false);
-const tasks = ref([]);         
-const allTasks = ref([]);      
-const allUsers = ref([]);      
-const loading = ref(true);
-const error = ref(false);
-
-const hasAdminAccess = computed(() => {
-  return isManagerOrAdmin(props.currentUser?.role);
-});
-
-const fetchAssignedTasks = async () => {
-  loading.value = true;
-  error.value = false;
-  try {
-    tasks.value = await taskService.getUserTasks(props.currentUser.id);
-  } catch (err) {
-    console.error('Görevler alınamadı:', err);
-    error.value = true;
-  } finally {
-    loading.value = false;
-  }
-};
-
-const fetchManagerData = async () => {
-  loading.value = true;
-  error.value = false;
-  try {
-    const [tasksData, usersData] = await Promise.all([
-      taskService.getTasks(),
-      userService.getUsers()
-    ]);
-    allTasks.value = tasksData;
-    allUsers.value = usersData;
-  } catch (err) {
-    console.error('Yönetim panosu verileri alınamadı:', err);
-    error.value = true;
-  } finally {
-    loading.value = false;
-  }
-};
-
 const getUserName = (userId) => {
   if (!userId) return 'Henüz Atanmadı';
-  const u = allUsers.value.find(u => String(u.id) === String(userId));
+  const u = userStore.users.find(u => String(u.id) === String(userId));
   return u ? (u.fullName || u.username) : 'Henüz Atanmadı';
 };
 
@@ -365,32 +332,35 @@ const isToday = (dateValue) => {
 };
 
 const myAdminTasks = computed(() => {
-  return [...allTasks.value].filter(t => String(t.assignedToId) === String(props.currentUser.id) && t.status !== 'Tamamlandı');
+  return [...taskStore.tasks].filter(t => String(t.assignedToId) === String(currentUser.value?.id) && t.status !== 'Tamamlandı');
+});
+
+const myStaffTasks = computed(() => {
+  return [...taskStore.tasks].filter(t => String(t.assignedToId) === String(currentUser.value?.id) && t.status !== 'Tamamlandı');
 });
 
 const normalOngoingTasks = computed(() => {
-  return [...allTasks.value]
+  return [...taskStore.tasks]
     .filter(t => t.status !== 'Tamamlandı' && !isProblemTask(t))
     .sort((a, b) => new Date(a.deadline || 0) - new Date(b.deadline || 0));
 });
 
 const problemTasks = computed(() => {
-  return [...allTasks.value]
+  return [...taskStore.tasks]
     .filter(t => t.status !== 'Tamamlandı' && isProblemTask(t))
     .sort((a, b) => new Date(a.deadline || 0) - new Date(b.deadline || 0));
 });
 
 const completedTasks = computed(() => {
-  return [...allTasks.value]
+  return [...taskStore.tasks]
     .filter(t => t.status === 'Tamamlandı')
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 });
 
 onMounted(() => {
+  taskStore.fetchTasks();
   if (hasAdminAccess.value) {
-    fetchManagerData();
-  } else {
-    fetchAssignedTasks();
+    userStore.fetchUsers();
   }
 });
 </script>
@@ -495,7 +465,6 @@ onMounted(() => {
   display: inline-block;
 }
 
-/* ---------- YÖNETİM PANOSU TABLOLARI ---------- */
 .clickable-row { cursor: pointer; transition: background 0.2s; }
 .clickable-row:hover { background: rgba(255, 143, 192, 0.06); }
 

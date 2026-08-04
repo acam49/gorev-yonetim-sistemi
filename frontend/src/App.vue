@@ -1,6 +1,6 @@
 <template>
-  <!-- SAKURA YAPRAKLARI: Sadece Karşılama (landing) sayfasında DEĞİLSE görünsün -->
-  <div class="sakura-layer" aria-hidden="true" v-if="currentView !== 'landing'">
+  <!-- SAKURA YAPRAKLARI: Karşılama ve Login sayfalarında DEĞİLSE görünsün -->
+  <div class="sakura-layer" aria-hidden="true" v-if="route.name !== 'landing' && route.name !== 'login'">
     <span
       v-for="p in petals"
       :key="p.id"
@@ -17,71 +17,19 @@
     ></span>
   </div>
 
-  <!-- 1. Karşılama Sayfası -->
-  <LandingView
-    v-if="!currentUser && currentView === 'landing'"
-    @go-login="goTo('login')"
-  />
-
-  <!-- 2. Login Sayfası (DÜZELTİLEN KISIM BURASI: @go-home eklendi) -->
-  <Login
-    v-else-if="!currentUser && currentView === 'login'"
-    @login-success="handleLoginSuccess"
-    @go-home="goTo('landing')"
-  />
-
-  <!-- 3. Ana Panel (Giriş yapılmışsa) -->
-  <Dashboard
-    v-else-if="currentUser && currentView === 'dashboard'"
-    :current-user="currentUser"
-    @navigate="goTo"
-    @logout="handleLogout"
-  />
-
-  <!-- 4. Görev Yönetimi (Giriş yapılmışsa) -->
-  <TaskManager
-    v-else-if="currentUser && currentView === 'tasks'"
-    :current-user="currentUser"
-    @go-home="goTo('dashboard')"
-    @logout="handleLogout"
-  />
-
-  <!-- 5. Personel Yönetimi (Giriş yapılmışsa) -->
-  <Personnel
-    v-else-if="currentUser && currentView === 'personnel'"
-    @go-home="goTo('dashboard')"
-  />
-
-  <!-- 6. Sistem Geçmişi (Giriş yapılmışsa ve sadece yetkililer için) -->
-  <SystemLogs
-    v-else-if="currentUser && currentView === 'logs'"
-    :current-user="currentUser"
-    @go-home="goTo('dashboard')"
-  />
-
-  <!-- 7. Görev Türleri Yönetimi (Sadece Müdür/Admin) -->
-  <TaskTypes
-    v-else-if="currentUser && currentView === 'task-types'"
-    @go-home="goTo('dashboard')"
-  />
+  <!-- ROUTER VIEW (Tüm Vue sayfaları dinamik olarak buraya yüklenir) -->
+  <router-view v-slot="{ Component }">
+    <transition name="fade" mode="out-in">
+      <component :is="Component" />
+    </transition>
+  </router-view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { authService } from './services/authService';
-import { useAuth } from './composables/useAuth';
+import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 
-// BÜTÜN SAYFALARIN İMPORT EDİLDİĞİ KISIM
-import LandingView from './components/LandingView.vue';
-import Login from './components/Login.vue';
-import Dashboard from './components/Dashboard.vue';
-import TaskManager from './components/TaskManager.vue';
-import Personnel from './components/Personnel.vue';
-import TaskTypes from './components/TaskTypes.vue';
-import SystemLogs from './components/SystemLogs.vue';
-
-const { currentUser, initAuth, setAuthUser } = useAuth();
-const currentView = ref('landing');
+const route = useRoute();
 
 const petals = ref(
   Array.from({ length: 22 }, (_, i) => ({
@@ -94,32 +42,10 @@ const petals = ref(
     spin: Math.random() * 360
   }))
 );
-
-const handleLoginSuccess = (user) => {
-  setAuthUser(user);
-  currentView.value = 'dashboard';
-};
-
-const handleLogout = async () => {
-  await authService.logout(currentUser.value?.id);
-  currentUser.value = null;
-  currentView.value = 'landing';
-};
-
-const goTo = (view) => {
-  currentView.value = view;
-};
-
-onMounted(() => {
-  initAuth();
-  if (currentUser.value) {
-    currentView.value = 'dashboard';
-  }
-});
 </script>
 
 <style>
-/* App.vue içindeki mevcut CSS kodlarında hiçbir değişiklik yapılmadı. */
+/* App.vue içindeki tüm CSS stilleri korundu */
 html, body, #app { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background-color: #0a0e17; }
 * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
@@ -163,7 +89,7 @@ html, body, #app { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x:
   100% { transform: translateY(110vh) translateX(var(--drift)) rotate(var(--spin)); opacity: 0.15; }
 }
 
-/* GEÇİŞ (EKRAN DEĞİŞİMİ) ANİMASYONU */
+/* GEÇİŞ ANİMASYONU */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.35s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
