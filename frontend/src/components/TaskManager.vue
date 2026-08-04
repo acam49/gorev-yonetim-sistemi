@@ -335,7 +335,7 @@ const hasAdminAccess = computed(() => {
 
 const canRestoreTask = (task) => {
   if (hasAdminAccess.value) return true;
-  return task.assignedToId === props.currentUser.id;
+  return task.assignedToId === currentUser.value?.id;
 };
 
 const todayDate = getTodayString(); 
@@ -364,8 +364,8 @@ const tempStatus = ref('');
 
 const getUserName = (userId) => {
   if (!userId) return 'Henüz Atanmadı';
-  if (String(userId) === String(props.currentUser.id)) {
-    return props.currentUser.fullName || props.currentUser.username;
+  if (String(userId) === String(currentUser.value?.id)) {
+    return currentUser.value?.fullName || currentUser.value?.username;
   }
   const user = users.value.find(u => String(u.id) === String(userId));
   return user ? (user.fullName || user.username) : 'Henüz Atanmadı';
@@ -430,7 +430,7 @@ const addTask = async () => {
 
 const claimTask = async (task) => {
   try {
-    await taskService.claimTask(task.id, props.currentUser.id);
+    await taskService.claimTask(task.id, currentUser.value?.id);
     fetchTasks();
   } catch (error) {
     console.error('Görev üstlenilemedi:', error);

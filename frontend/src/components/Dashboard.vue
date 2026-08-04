@@ -204,8 +204,6 @@ import PasswordModal from './dashboard/PasswordModal.vue';
 import { useAuthStore } from '../stores/auth';
 import { useTaskStore } from '../stores/task';
 import { useUserStore } from '../stores/user';
-import { authService } from '../services/authService';
-import { validatePassword } from '../utils/validators';
 import { formatDate } from '../utils/formatters';
 
 const router = useRouter();
@@ -216,51 +214,14 @@ const userStore = useUserStore();
 const currentUser = computed(() => authStore.currentUser);
 const hasAdminAccess = computed(() => authStore.hasAdminAccess);
 
-const tasksMenuOpen = ref(false);
-const adminMenuOpen = ref(false);
-
 const showPasswordModal = ref(false);
-const pwForm = ref({ currentPassword: '', newPassword: '', confirmPassword: '' });
-const pwError = ref('');
-const pwSuccess = ref('');
 
-const closePasswordModal = () => {
-  showPasswordModal.value = false;
-  pwForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
-  pwError.value = '';
-  pwSuccess.value = '';
-};
 
 const handleLogout = async () => {
   await authStore.logout();
   router.push('/login');
 };
 
-const handleChangePassword = async () => {
-  pwError.value = '';
-  pwSuccess.value = '';
-
-  const ruleError = validatePassword(pwForm.value.newPassword);
-  if (ruleError) {
-    pwError.value = ruleError;
-    return;
-  }
-  if (pwForm.value.newPassword !== pwForm.value.confirmPassword) {
-    pwError.value = 'Yeni şifreler birbiriyle uyuşmuyor.';
-    return;
-  }
-
-  try {
-    await authService.changePassword({
-      currentPassword: pwForm.value.currentPassword,
-      newPassword: pwForm.value.newPassword
-    });
-    pwSuccess.value = 'Şifreniz başarıyla güncellendi!';
-    setTimeout(() => closePasswordModal(), 2000);
-  } catch (error) {
-    pwError.value = error.response?.data?.message || 'Bir hata oluştu.';
-  }
-};
 
 const getUserName = (userId) => {
   if (!userId) return 'Henüz Atanmadı';

@@ -9,7 +9,7 @@
           <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 5px;">Tüm sistem hareketleri kronolojik olarak listelenmektedir.</p>
         </div>
         <div class="user-status-card">
-          <button @click="$emit('go-home')" class="btn-glow">Ana Sayfa</button>
+          <button @click="router.push('/dashboard')" class="btn-glow">Ana Sayfa</button>
         </div>
       </header>
 

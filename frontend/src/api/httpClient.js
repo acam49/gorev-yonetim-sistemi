@@ -29,6 +29,10 @@ httpClient.interceptors.response.use(
       if (!isLoginRequest) {
         localStorage.removeItem('token');
         localStorage.removeItem('currentUser');
+        // Kullanıcıyı login sayfasına yönlendir
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
@@ -36,3 +40,4 @@ httpClient.interceptors.response.use(
 );
 
 export default httpClient;
+
