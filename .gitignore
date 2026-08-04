@@ -1,2 +1,23 @@
+# Bağımlılıklar
 node_modules/
+
+# Ortam değişkenleri (ASLA commit edilmemeli)
 .env
+.env.local
+.env.production
+
+# Loglar
+logs/
+*.log
+
+# Derleme çıktıları
+frontend/dist/
+
+# İşletim sistemi dosyaları
+Thumbs.db
+.DS_Store
+
+# IDE
+.idea/
+*.swp
+*.swo
