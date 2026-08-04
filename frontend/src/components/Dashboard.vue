@@ -186,14 +186,14 @@
         </div>
       </main>
 
-    </div>
-  </div>
+    </div> <!-- /dashboard-layout -->
 
-  <!-- ŞİFRE DEĞİŞTİRME MODALI (SUB-COMPONENT) -->
-  <PasswordModal
-    :show="showPasswordModal"
-    @close="showPasswordModal = false"
-  />
+    <!-- ŞİFRE DEĞİŞTİRME MODALI (SUB-COMPONENT) -->
+    <PasswordModal
+      :show="showPasswordModal"
+      @close="showPasswordModal = false"
+    />
+  </div> <!-- /app-background -->
 </template>
 
 <script setup>

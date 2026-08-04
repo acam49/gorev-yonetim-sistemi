@@ -1,6 +1,6 @@
 <template>
-  <!-- ARKA PLANI VE ORTALAMAYI SAĞLAYAN ANA KUTU EKLENDİ -->
   <div class="app-background">
+    <!-- ARKA PLANI VE ORTALAMAYI SAĞLAYAN ANA KUTU EKLENDİ -->
     <div class="main-container">
       
       <!-- ÜST BİLGİ VE GERİ DÖN BUTONU -->
