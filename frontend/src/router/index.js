@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { isManagerOrAdmin } from '../constants/roles';
 
 import LandingView from '../components/LandingView.vue';
 import Login from '../components/Login.vue';
@@ -26,24 +27,36 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore();
+  const token = localStorage.getItem('token');
+  const savedUser = localStorage.getItem('currentUser');
   
-  if (!authStore.currentUser) {
-    authStore.initAuth();
+  let currentUser = null;
+  try {
+    currentUser = savedUser ? JSON.parse(savedUser) : null;
+  } catch (e) {
+    currentUser = null;
   }
 
-  const isAuthenticated = authStore.isAuthenticated;
-  const hasAdminAccess = authStore.hasAdminAccess;
+  const isAuthenticated = !!(token && currentUser);
+  const hasAdminAccess = isManagerOrAdmin(currentUser?.role);
+
+  const authStore = useAuthStore();
+  if (currentUser && !authStore.currentUser) {
+    authStore.setAuthUser(currentUser, token);
+  }
 
   if (to.meta.requiresAuth && !isAuthenticated) {
+    if (from.name === 'login') return next(false);
     return next({ name: 'login' });
   }
 
   if (to.meta.requiresManager && !hasAdminAccess) {
+    if (from.name === 'dashboard') return next(false);
     return next({ name: 'dashboard' });
   }
 
   if (to.name === 'login' && isAuthenticated) {
+    if (from.name === 'dashboard') return next(false);
     return next({ name: 'dashboard' });
   }
 
