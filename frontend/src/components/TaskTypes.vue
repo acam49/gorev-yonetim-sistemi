@@ -50,9 +50,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { taskTypeService } from '../services/taskTypeService';
 
-defineEmits(['go-home']);
+const router = useRouter();
 
 const types = ref([]);
 const form = ref({ name: '' });
