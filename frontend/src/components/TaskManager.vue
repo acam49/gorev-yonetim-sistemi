@@ -204,14 +204,8 @@
 
                 </div>
 
-                <div v-else>
-
-                  <span class="status-badge" @click="startEditingStatus(t)" title="Durumu değiştirmek için tıkla">
-
-                    {{ t.status || 'Yapılacak' }}
-
-                  </span>
-
+                <div v-else @click="startEditingStatus(t)" title="Durumu değiştirmek için tıkla" style="cursor:pointer;">
+                  <StatusBadge :status="t.status || 'Yapılacak'" />
                 </div>
 
               </td>
@@ -318,6 +312,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import StatusBadge from './common/StatusBadge.vue';
 import { useAuthStore } from '../stores/auth';
 import { taskService } from '../services/taskService';
 import { taskTypeService } from '../services/taskTypeService';

@@ -2,35 +2,12 @@
   <div class="app-background">
     <div class="dashboard-layout">
 
-      <!-- KENAR PANEL (SIDEBAR) -->
-      <aside class="glass-panel sidebar">
-        <h2 class="glow-text" style="font-size:18px; margin-bottom: 30px;">Görev Yönetim Sistemi</h2>
-
-        <nav class="side-menu">
-          <!-- Görevler Menüsü -->
-          <div class="menu-item" @click="tasksMenuOpen = !tasksMenuOpen">
-            <span>Görevler</span>
-            <span class="menu-arrow" :class="{ open: tasksMenuOpen }">▾</span>
-          </div>
-          <div v-if="tasksMenuOpen" class="submenu">
-            <div class="submenu-item" @click="router.push('/tasks')">Görev Yönetimi</div>
-          </div>
-
-          <!-- Yönetim Menüsü (SADECE MÜDÜR VE ADMİN GÖREBİLİR) -->
-          <div class="menu-item" @click="adminMenuOpen = !adminMenuOpen" v-if="hasAdminAccess">
-            <span>Yönetim</span>
-            <span class="menu-arrow" :class="{ open: adminMenuOpen }">▾</span>
-          </div>
-          <div v-if="adminMenuOpen && hasAdminAccess" class="submenu">
-            <div class="submenu-item" @click="router.push('/personnel')">Personel Yönetimi</div>
-            <div class="submenu-item" @click="router.push('/task-types')">Görev Türleri</div>
-            <div class="submenu-item" @click="router.push('/logs')">Sistem Geçmişi</div>
-          </div>
-        </nav>
-
-        <button @click="showPasswordModal = true" class="btn-glow" style="width:100%; margin-top:10px; font-size:12px;">Şifremi Değiştir</button>
-        <button @click="handleLogout" class="btn-delete" style="width:100%; margin-top: 10px;">Çıkış Yap</button>
-      </aside>
+      <!-- KENAR PANEL (SUB-COMPONENT) -->
+      <SidebarNav
+        :has-admin-access="hasAdminAccess"
+        @open-password-modal="showPasswordModal = true"
+        @logout="handleLogout"
+      />
 
       <!-- ANA İÇERİK -->
       <main class="dashboard-main">
@@ -212,38 +189,18 @@
     </div>
   </div>
 
-  <!-- ŞİFRE DEĞİŞTİRME MODALI -->
-  <div v-if="showPasswordModal" class="modal-overlay" @click.self="closePasswordModal">
-    <div class="glass-panel modal-box">
-      <h3 class="glow-text" style="margin-bottom:20px;">Şifremi Değiştir</h3>
-
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <input v-model="pwForm.currentPassword" type="password" placeholder="Mevcut Şifreniz" class="modal-input">
-        <input v-model="pwForm.newPassword" type="password" placeholder="Yeni Şifreniz" class="modal-input">
-
-        <div v-if="pwForm.newPassword.length > 0" class="pwd-hints">
-          <span :class="pwForm.newPassword.length >= 6 ? 'hint-ok' : 'hint-fail'">✓ En az 6 karakter</span>
-          <span :class="/[A-Z]/.test(pwForm.newPassword) ? 'hint-ok' : 'hint-fail'">✓ En az 1 büyük harf</span>
-          <span :class="/[0-9]/.test(pwForm.newPassword) ? 'hint-ok' : 'hint-fail'">✓ En az 1 rakam</span>
-        </div>
-
-        <input v-model="pwForm.confirmPassword" type="password" placeholder="Yeni Şifrenizi Tekrar Girin" class="modal-input">
-
-        <p v-if="pwError" style="color:#ff4d4d; font-size:12px; margin:0;">{{ pwError }}</p>
-        <p v-if="pwSuccess" style="color:#2ecc71; font-size:12px; margin:0;">{{ pwSuccess }}</p>
-
-        <div style="display:flex; gap:10px; margin-top:5px;">
-          <button @click="handleChangePassword" class="btn-glow" style="flex:1;">Kaydet</button>
-          <button @click="closePasswordModal" class="btn-delete" style="flex:1;">İptal</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- ŞİFRE DEĞİŞTİRME MODALI (SUB-COMPONENT) -->
+  <PasswordModal
+    :show="showPasswordModal"
+    @close="showPasswordModal = false"
+  />
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import SidebarNav from './dashboard/SidebarNav.vue';
+import PasswordModal from './dashboard/PasswordModal.vue';
 import { useAuthStore } from '../stores/auth';
 import { useTaskStore } from '../stores/task';
 import { useUserStore } from '../stores/user';
