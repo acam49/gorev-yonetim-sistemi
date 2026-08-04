@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "target": "ESNext",
+    "module": "ESNext",
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules", "frontend/dist"]
+}
