@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const { toUserDto, toUserListDto } = require('../dtos/userDto');
 
 class UserController {
     constructor(userSvc = userService) {
@@ -8,7 +9,7 @@ class UserController {
     getAllUsers = async (req, res, next) => {
         try {
             const users = await this.userService.getAllUsers();
-            res.status(200).json(users);
+            res.status(200).json(toUserListDto(users));
         } catch (error) {
             next(error);
         }
@@ -19,7 +20,7 @@ class UserController {
             const user = await this.userService.registerUser(req.body);
             res.status(201).json({
                 message: 'Personel kaydedildi ve geçici şifre e-postaya gönderildi.',
-                user
+                user: toUserDto(user)
             });
         } catch (error) {
             next(error);
@@ -38,7 +39,10 @@ class UserController {
                     maxAge: 8 * 60 * 60 * 1000
                 });
             }
-            res.status(200).json(result);
+            res.status(200).json({
+                ...result,
+                user: toUserDto(result.user)
+            });
         } catch (error) {
             next(error);
         }
@@ -80,7 +84,7 @@ class UserController {
         try {
             const { id } = req.params;
             const updatedUser = await this.userService.updateUser(id, req.body);
-            res.status(200).json({ message: 'Personel bilgileri başarıyla güncellendi', user: updatedUser });
+            res.status(200).json({ message: 'Personel bilgileri başarıyla güncellendi', user: toUserDto(updatedUser) });
         } catch (error) {
             next(error);
         }

@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const userRepository = require('../repositories/userRepository');
 const taskRepository = require('../repositories/taskRepository');
+const logger = require('../utils/logger');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -84,9 +85,7 @@ class UserService {
             isFirstLogin: true
         });
 
-        console.log(`\n--- YENİ PERSONEL EKLENDİ ---`);
-        console.log(`Kullanıcı Adı : ${username}`);
-        console.log(`Geçici Şifre  : ${temporaryPassword}\n`);
+        logger.info(`Yeni personel eklendi - Kullanıcı Adı: ${username}`);
 
         const mailOptions = {
             from: `"Görev Yönetim Sistemi" <${process.env.SMTP_USER}>`,
@@ -109,10 +108,10 @@ class UserService {
         let emailSent = false;
         try {
             const mailInfo = await transporter.sendMail(mailOptions);
-            console.log('E-posta başarıyla gönderildi:', mailInfo.response);
+            logger.info(`E-posta başarıyla gönderildi: ${mailInfo.response}`);
             emailSent = true;
         } catch (mailError) {
-            console.error('E-posta gönderim hatası:', mailError.message);
+            logger.error(`E-posta gönderim hatası: ${mailError.message}`);
         }
 
         return {
@@ -288,7 +287,7 @@ class UserService {
                 role: 'Admin',
                 isFirstLogin: false
             });
-            console.log('Kurumsal Admin oluşturuldu! Kullanıcı: admin');
+            logger.info('Kurumsal Admin oluşturuldu! Kullanıcı: admin');
         }
     }
 }

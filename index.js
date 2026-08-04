@@ -9,6 +9,7 @@ const { sequelize } = require('./models');
 // Servisler ve Middleware
 const userService = require('./services/userService');
 const errorHandler = require('./middleware/errorHandler');
+const logger = require('./utils/logger');
 
 const app = express();
 
@@ -40,21 +41,21 @@ const PORT = process.env.PORT || 3000;
 async function initDB() {
     try {
         await sequelize.authenticate();
-        console.log('Veritabanı bağlantısı başarıyla kuruldu.');
+        logger.info('Veritabanı bağlantısı başarıyla kuruldu.');
 
         const isProduction = process.env.NODE_ENV === 'production';
         if (isProduction) {
-            console.log('Production modunda veritabanı şema yönetimi migration komutları ile yürütülür.');
+            logger.info('Production modunda veritabanı şema yönetimi migration komutları ile yürütülür.');
         } else {
             await sequelize.sync({ alter: true });
-            console.log('Geliştirme (dev) modunda veritabanı tabloları senkronize edildi.');
+            logger.info('Geliştirme (dev) modunda veritabanı tabloları senkronize edildi.');
         }
 
         // İlk admin oluşturma — Service katmanı üzerinden
         await userService.seedAdmin();
 
     } catch (error) {
-        console.error('Veritabanına bağlanılırken veya senkronize edilirken hata oluştu:', error);
+        logger.error('Veritabanına bağlanılırken veya senkronize edilirken hata oluştu:', error);
         process.exit(1);
     }
 }
@@ -66,5 +67,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Sunucu ayağa kalktı! http://localhost:${PORT} adresinden test edebilirsin.`);
+    logger.info(`Sunucu ayağa kalktı! http://localhost:${PORT} adresinden test edebilirsin.`);
 });

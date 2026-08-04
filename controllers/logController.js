@@ -1,4 +1,5 @@
 const logService = require('../services/logService');
+const { toLogDto, toLogListDto } = require('../dtos/logDto');
 
 class LogController {
     constructor(logSvc = logService) {
@@ -8,7 +9,7 @@ class LogController {
     getAllLogs = async (req, res, next) => {
         try {
             const logs = await this.logService.getAllLogs();
-            res.status(200).json(logs);
+            res.status(200).json(toLogListDto(logs));
         } catch (error) {
             next(error);
         }
@@ -17,7 +18,7 @@ class LogController {
     createLog = async (req, res, next) => {
         try {
             const newLog = await this.logService.createLog(req.body);
-            res.status(201).json(newLog);
+            res.status(201).json(toLogDto(newLog));
         } catch (error) {
             next(error);
         }

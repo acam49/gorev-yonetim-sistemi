@@ -1,4 +1,5 @@
 const taskService = require('../services/taskService');
+const { toTaskDto, toTaskListDto } = require('../dtos/taskDto');
 
 class TaskController {
     constructor(taskSvc = taskService) {
@@ -8,7 +9,7 @@ class TaskController {
     createTask = async (req, res, next) => {
         try {
             const newTask = await this.taskService.createTask(req.body, req.user);
-            res.status(201).json(newTask);
+            res.status(201).json(toTaskDto(newTask));
         } catch (error) {
             next(error);
         }
@@ -17,7 +18,7 @@ class TaskController {
     getTasks = async (req, res, next) => {
         try {
             const tasks = await this.taskService.getAllTasks();
-            res.status(200).json(tasks);
+            res.status(200).json(toTaskListDto(tasks));
         } catch (error) {
             next(error);
         }
@@ -27,7 +28,7 @@ class TaskController {
         try {
             const { id } = req.params;
             const updatedTask = await this.taskService.updateTask(id, req.body, req.user);
-            res.status(200).json(updatedTask);
+            res.status(200).json(toTaskDto(updatedTask));
         } catch (error) {
             next(error);
         }
@@ -47,7 +48,7 @@ class TaskController {
         try {
             const { userId } = req.params;
             const tasks = await this.taskService.getTasksForUser(userId);
-            res.status(200).json(tasks);
+            res.status(200).json(toTaskListDto(tasks));
         } catch (error) {
             next(error);
         }
